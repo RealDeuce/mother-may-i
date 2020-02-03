@@ -11,17 +11,19 @@ class MotherMayI {
 	/*
 	 * Returns the first GM id.
 	 */
-	static firstGM() {
+	static firstGM(msg) {
 		let i;
 
 		for (i=0; i<game.users.entities.length; i++) {
 			if (game.users.entities[i].data.role >= 4 && game.users.entities[i].data.active)
 				return game.users.entities[i].data._id;
 		}
-		ui.notifications.error("No GM available for Dancing Lights!");
+		ui.notifications.error("No GM available "+msg+"!");
 	}
 
 	static setCanDrag(app, html, data) {
+		if (!game.user.hasRole(CONST.USER_ROLES.TRUSTED))
+			return true;
 		html.find('li.actor').each((i, li) => {
 			li.setAttribute("draggable", true);
 			li.addEventListener('dragstart', ev => app._onDragStart(ev), false);
@@ -32,29 +34,37 @@ class MotherMayI {
 	static askMotherDelete(scene, sceneID, entityID) {
 		if (game.user.isGM)
 			return true;
-		if (!game.user.hasRole(CONST.USER_ROLES.TRUSTED))
+		if (!game.user.hasRole(CONST.USER_ROLES.TRUSTED)) {
+			ui.notifications.error("Only trusted users can delete tokens.");
 			return false;
+		}
 
 		let req = {action:"Delete", scene:sceneID, entity:entityID, class:"Token"};
-		req.addressTo = this.firstGM();
+		req.addressTo = this.firstGM("to delete token");
 		let tok = canvas.scene.getEmbeddedEntity(req.class, req.entity);
 		let actor = game.actors.get(tok.actorId);
 		if (actor.hasPerm(game.user, "OWNER"))
-				game.socket.emit("module.mother-may-i", req);
+			game.socket.emit("module.mother-may-i", req);
+		else
+			ui.notifications.error("Cannot delete tokens unless you are an owner of the actor.");
 		return false;
 	}
 
 	static askMotherCreate(scene, sceneID, source, options) {
 		if (game.user.isGM)
 			return true;
-		if (!game.user.hasRole(CONST.USER_ROLES.TRUSTED))
+		if (!game.user.hasRole(CONST.USER_ROLES.TRUSTED)) {
+			ui.notifications.error("Only trusted users can create tokens.");
 			return false;
+		}
 
 		let actor = game.actors.get(source.actorId);
 		let req = {action:"Create", x:source.x, y:source.y, scene:sceneID, id:source.actorId, class:options.embeddedName};
-		req.addressTo = this.firstGM();
-		if (game.user.hasRole(CONST.USER_ROLES.TRUSTED) && actor.hasPerm(game.user, "OWNER"))
+		req.addressTo = this.firstGM("to create token");
+		if (actor.hasPerm(game.user, "OWNER"))
 			game.socket.emit("module.mother-may-i", req);
+		else
+			ui.notifications.error("Can only drop actors if you're an owner.");
 		return false;
 	}
 
