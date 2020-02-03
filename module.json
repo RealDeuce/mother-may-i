@@ -1,0 +1,14 @@
+{
+	"name": "mother-may-i",
+	"title": "Mother, May I?",
+	"description": "Allows players to drag items and actors they own to the canvas.",
+	"version": "0.0.1",
+	"author": "Deuce",
+	"esmodules": ["./mother-may-i.js"],
+	"socket": true,
+	"styles": [],
+	"packs": [],
+	"manifest": "https://raw.githubusercontent.com/RealDeuce/mother-may-i/master/module.json",
+	"download": "https://raw.githubusercontent.com/RealDeuce/mother-may-i/master/mother-may-i.zip",
+	"minimumCoreVersion": "0.4.4"
+}
